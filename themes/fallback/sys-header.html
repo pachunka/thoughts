@@ -16,16 +16,42 @@
 <hr style="clear:both">
 
 <script>
-function goHome (addr) {
-	let addr1 = typeof addr == 'string' ? addr : addr[0];
-	location.href = `/${ addr1.substr(2).toLowerCase() }/`;
-}
-function offerPostAs (addr) {
+function pageClear () {
 	var marker = document.querySelector('hr');
 	while (marker.nextSibling) {
 		marker.nextSibling.remove();
 	}
-	marker.insertAdjacentHTML('afterEnd',`
+	return marker;
+}
+async function goHome (addrs) {
+	var addr = addrs[0] // more sophistication coming later.
+	var href = `/${ addr.substr(2).toLowerCase() }/`
+	var xh = new XMLHttpRequest
+	xh.open('get',href)
+	xh.onload = xh.onabort = xh.onerror = ev => {
+		switch (xh.status) {
+			case 200:
+				// do this crazy thing instead of a redirect:
+				history.pushState(null,document.title,href)
+				document.documentElement.innerHTML = xh.responseText
+				for (let el of document.querySelectorAll('script:not([src])')) {
+					;(new Function(el.textContent))();
+				}
+				break;
+			case 404:
+				pageClear().insertAdjacentText('afterEnd',"You're not yet a member! Try posting first!");
+				break;
+			default:
+				console.error("Uh oh",ev,xh);
+				pageClear().insertAdjacentHTML('afterEnd','<img src="about:blank">'); // shows a broken img
+				break;
+				// no idea what's best to do here tbh
+		}
+	}
+	xh.send()
+}
+function offerPostAs (addr) {
+	pageClear().insertAdjacentHTML('afterEnd',`
 		<textarea autofocus></textarea>
 		<br>
 		<input addr="${ attrOK(addr) }" type="button" value="Post as ${ attrOK(addr) }" onclick="postAs(this.getAttribute('addr'))">
@@ -44,8 +70,11 @@ function postAs(addr) {
 			//console.info("EVL:",ev.type,xh.status,xh.statusText,ev);
 			switch (ev.type) {
 				case 'load':
-					goHome(addr);
-					break;
+					if (xh.status >= 200 && xh.status < 300) {
+						location.href = `/${ addr.substr(2).toLowerCase() }/`;
+						break;
+					}
+					//else fallthrough:
 				case 'error':
 					alert("Your thought was not posted.");
 					break;

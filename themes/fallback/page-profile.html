@@ -1,28 +1,33 @@
 <body>
 <script>
-customElements.define('ipfs-thought',class extends HTMLElement {
-	constructor () {
-		super();
-	}
-	static get observedAttributes() { return ['cid'] }
-	attributeChangedCallback(nm,ol,nu) {
-		;(async () => {
-			if (!/[a-zA-Z0-9]/.test(nu)) throw new Error("Bad CID:" + nu);
-			let url = `https://${ nu }.ipfs.dweb.link/thought.txt`;
-			console.log("Gonna go get",url);
-			let ftc = await fetch(url);
-			let txt = await ftc.text();
-			this.textContent = txt
-		})();
-	}
-});
+try {
+	customElements.define('ipfs-thought',class extends HTMLElement {
+		constructor () {
+			super();
+		}
+		static get observedAttributes() { return ['cid'] }
+		attributeChangedCallback(nm,ol,nu) {
+			;(async () => {
+				if (!/[a-zA-Z0-9]/.test(nu)) throw new Error("Bad CID:" + nu);
+				let url = `https://${ nu }.ipfs.dweb.link/thought.txt`;
+				console.log("Gonna go get",url);
+				let ftc = await fetch(url);
+				let txt = await ftc.text();
+				this.textContent = txt
+			})();
+		}
+	});
+}
+catch (ee) {
+	console.log("Skip element reg:",ee);
+}
 //
 const lines = `ADF26198-411C-414A-9EB3-2C981305110E`.trim().split('\n');
 document.body.insertAdjacentHTML(
 	 'beforeEnd'
 	,lines
 		.filter(ln => /^\/post /.test(ln))
-		.map(ln => `<ipfs-thought cid="${ attrOK(ln.substr(6).trim()) }"></ipfs-thought>`)
+		.map(ln => `<ipfs-thought cid="${ attrOK(ln.split(' ')[1]) }"></ipfs-thought>`)
 		.join('')
 );
 </script>
