@@ -248,7 +248,7 @@ modfs.watch '.',(tx,fn) ->
 			console.log '[[omw]]'
 			#!!#md_save()
 			probably_shut_it_down()
-modfs.watch './themes/',(recursive:yes),(tx,fn) ->
+try modfs.watch './themes/',(recursive:yes),(tx,fn) ->
 	console.log """Theme file changed: "#{tx}" / "#{fn}" """
 	if tx is 'change' and not wayout
 		if (

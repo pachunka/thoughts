@@ -327,20 +327,22 @@
     }
   });
 
-  modfs.watch('./themes/', {
-    recursive: true
-  }, function(tx, fn) {
-    console.log(`Theme file changed: "${tx}" / "${fn}" `);
-    if (tx === 'change' && !wayout) {
-      // Restart server when either of these files changes:
-      if ((fn.match(/\.html$/)) || (fn.match(/\.css$/))) {
-        wayout = true;
-        console.log('[[omw]]');
-        //!!#md_save()
-        return probably_shut_it_down();
+  try {
+    modfs.watch('./themes/', {
+      recursive: true
+    }, function(tx, fn) {
+      console.log(`Theme file changed: "${tx}" / "${fn}" `);
+      if (tx === 'change' && !wayout) {
+        // Restart server when either of these files changes:
+        if ((fn.match(/\.html$/)) || (fn.match(/\.css$/))) {
+          wayout = true;
+          console.log('[[omw]]');
+          //!!#md_save()
+          return probably_shut_it_down();
+        }
       }
-    }
-  });
+    });
+  } catch (error) {}
 
   // I feel like I'm gonna ctrl-c absent-mindedly and lose a bunch of data some time
   seriously = 0;
