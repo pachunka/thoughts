@@ -1,33 +1,3 @@
 Anything posted here will live on IPFS forever.
 <br><br>
-<input type=button value="Connect Wallet" onclick="
-	ethereum.request({ method: 'eth_requestAccounts' }).then(offerPostAs)
-">
-<script>
-function attrOK (ss) {
-	return String(ss).replace(/&/g, '&#x26;').replace(/'/g, '&#x27;').replace(/"/g, '&#x22;');
-}
-function offerPostAs (addr) {
-	document.body.innerHTML = `
-		<textarea autofocus></textarea>
-		<br>
-		<input addr="${ attrOK(addr) }" type="button" value="Post as ${ attrOK(addr) }" onclick="postAs(this.getAttribute('addr'))">
-	`
-}
-function postAs(addr) {
-	var txt = document.querySelector('textarea').value;
-	//
-	//
-	web3.eth.personal.sign(web3.utils.fromUtf8(txt),addr,function (err,ans) {
-		if (err) throw new Error(err);
-		var xh = new XMLHttpRequest;
-		xh.open('put','/post/'+addr+'/'+ans);
-		//
-		xh.onabort = xh.onload = xh.onerror = ev => {
-			console.info("EVL:",ev.type,xh.status,xh.statusText,ev);
-		}
-		//
-		xh.send(txt);
-	});
-}
-</script>
+Have fun!

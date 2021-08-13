@@ -44,6 +44,7 @@ readThemeSync = (theme) ->
 	return
 		"sys-prelude":  snipRead 'sys-prelude'
 		"sys-style":    snipRead 'sys-style'
+		"sys-header":   snipRead 'sys-header'
 		"page-home":    snipRead 'page-home'
 		"page-profile": snipRead 'page-profile'
 
@@ -109,6 +110,7 @@ declareNewPost = (type,addr,cid,ocb) ->
 modhttp.createServer hanandle = (req, res) ->
 	return ender res,400,'..' if req.url.match /\.\./ # no dot-dot requests, anywhere
 	rp = decodeURI req.url
+	hst = req.headers.host
 	#
 	rp = rp.split('?')[0]
 	rp = "#{rp}index.html" if rp.match /\/$/
@@ -193,6 +195,7 @@ modhttp.createServer hanandle = (req, res) ->
 		res.write [
 			themeActual['sys-prelude']
 			themeActual['sys-style']
+			themeActual['sys-header'].replace /ACF98A03-C0AD-4498-98B9-871F88BE477B/g, hst
 			themeActual['page-home']
 		].join '\n'
 		res.end()
@@ -224,7 +227,8 @@ modhttp.createServer hanandle = (req, res) ->
 			res.write [
 				themeActual['sys-prelude']
 				themeActual['sys-style']
-				themeActual['page-profile'].replace(/ADF26198-411C-414A-9EB3-2C981305110E/g,send)
+				themeActual['sys-header'].replace /ACF98A03-C0AD-4498-98B9-871F88BE477B/g, hst
+				themeActual['page-profile'].replace /ADF26198-411C-414A-9EB3-2C981305110E/g, send
 			].join '\n'
 			res.end()
 		return

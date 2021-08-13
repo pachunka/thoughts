@@ -61,6 +61,7 @@
       
       "sys-prelude": snipRead('sys-prelude'),
       "sys-style": snipRead('sys-style'),
+      "sys-header": snipRead('sys-header'),
       "page-home": snipRead('page-home'),
       "page-profile": snipRead('page-profile')
     };
@@ -149,11 +150,12 @@
   
   // Actual
   modhttp.createServer(hanandle = function(req, res) {
-    var _, addr, bad, fn, gather, match, pth, rp, siggy, ttl;
+    var _, addr, bad, fn, gather, hst, match, pth, rp, siggy, ttl;
     if (req.url.match(/\.\./)) { // no dot-dot requests, anywhere
       return ender(res, 400, '..');
     }
     rp = decodeURI(req.url);
+    hst = req.headers.host;
     
     rp = rp.split('?')[0];
     if (rp.match(/\/$/)) {
@@ -269,7 +271,7 @@
         'Cache-Control': `max-age=${0}`,
         'Access-Control-Allow-Origin': '*'
       });
-      res.write([themeActual['sys-prelude'], themeActual['sys-style'], themeActual['page-home']].join('\n'));
+      res.write([themeActual['sys-prelude'], themeActual['sys-style'], themeActual['sys-header'].replace(/ACF98A03-C0AD-4498-98B9-871F88BE477B/g, hst), themeActual['page-home']].join('\n'));
       res.end();
       return;
     } else if (pth.length === 3 && pth[1].match(/[a-z0-9]{40}/)) {
@@ -301,7 +303,7 @@
           'Cache-Control': `max-age=${0}`,
           'Access-Control-Allow-Origin': '*'
         });
-        res.write([themeActual['sys-prelude'], themeActual['sys-style'], themeActual['page-profile'].replace(/ADF26198-411C-414A-9EB3-2C981305110E/g, send)].join('\n'));
+        res.write([themeActual['sys-prelude'], themeActual['sys-style'], themeActual['sys-header'].replace(/ACF98A03-C0AD-4498-98B9-871F88BE477B/g, hst), themeActual['page-profile'].replace(/ADF26198-411C-414A-9EB3-2C981305110E/g, send)].join('\n'));
         return res.end();
       });
       return;
