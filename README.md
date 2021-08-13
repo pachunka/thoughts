@@ -11,6 +11,6 @@ A little something for [hackfs](https://hackfs.com/)! \o/
 
 ..with a web3 browser!
 
-After you post, visit ://theserver/YOUR_ETHEREUM_ADDRESS to see your posts!
+After you post, visit ://theserver/YOUR_ETHEREUM_ADDRESS/ to see your posts!
 
 More to come.
