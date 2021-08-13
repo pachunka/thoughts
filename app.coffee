@@ -93,7 +93,7 @@ declareNewPost = (type,addr,cid,ocb) ->
 		#
 		# step 2
 		lines = initial.split '\n'
-		lines.unshift "/post #{ cid }"
+		lines.unshift "/post #{ cid } @#{ (new Date).valueOf() }"
 		modified = lines.join '\n'
 		#
 		

@@ -131,7 +131,7 @@
       
       // step 2
       lines = initial.split('\n');
-      lines.unshift(`/post ${cid}`);
+      lines.unshift(`/post ${cid} @${(new Date()).valueOf()}`);
       modified = lines.join('\n');
       
       return modfs.writeFile(fn, modified, function(er) {
