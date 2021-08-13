@@ -24,11 +24,11 @@ customElements.define('ipfs-thought',class extends HTMLElement {
 	}
 });
 //
-const lines = `ADF26198-411C-414A-9EB3-2C981305110E`.trim().split('\\n');
+const lines = `ADF26198-411C-414A-9EB3-2C981305110E`.trim().split('\n');
 document.body.insertAdjacentHTML(
 	 'beforeEnd'
 	,lines
-		.filter(ln => /^\\/post /.exec(ln))
+		.filter(ln => /^\/post /.test(ln))
 		.map(ln => `<ipfs-thought cid="${ attrOK(ln.substr(6).trim()) }"></ipfs-thought>`)
 		.join('')
 );
