@@ -110,7 +110,7 @@ declareNewPost = (type,addr,cid,ocb) ->
 modhttp.createServer hanandle = (req, res) ->
 	return ender res,400,'..' if req.url.match /\.\./ # no dot-dot requests, anywhere
 	rp = decodeURI req.url
-	hst = req.headers.host.split(':')[0]
+	hst = (req.headers.host or '???').split(':')[0]
 	#
 	rp = rp.split('?')[0]
 	rp = "#{rp}index.html" if rp.match /\/$/

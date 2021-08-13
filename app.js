@@ -155,7 +155,7 @@
       return ender(res, 400, '..');
     }
     rp = decodeURI(req.url);
-    hst = req.headers.host.split(':')[0];
+    hst = (req.headers.host || '???').split(':')[0];
     
     rp = rp.split('?')[0];
     if (rp.match(/\/$/)) {
