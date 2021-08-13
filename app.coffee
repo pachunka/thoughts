@@ -241,27 +241,30 @@ modhttp.createServer hanandle = (req, res) ->
 # auto-reload for cmd line stuff
 wayout = no
 modfs.watch '.',(tx,fn) ->
-	console.log """Root file changed: "#{tx}" / "#{fn}" """
-	if tx is 'change' and not wayout
+	return if wayout
+	if tx is 'change'
+		console.log """Root file changed: "#{tx}" / "#{fn}" """
 		if (
 			# Restart server when either of these files changes:
-			(fn.match /\bapp\.js$/) or
-			(fn.match /\bbump\.uid$/)
+			(fn.match /\bapp\.js$/i) or
+			(fn.match /\bconfigme\.json$/i) or
+			(fn.match /\bbump\.uid$/i)
 		)
 			wayout = yes
-			console.log '[[omw]]'
+			console.log '-- Reboot --'
 			#!!#md_save()
 			probably_shut_it_down()
 try modfs.watch './themes/',(recursive:yes),(tx,fn) ->
-	console.log """Theme file changed: "#{tx}" / "#{fn}" """
-	if tx is 'change' and not wayout
+	return if wayout
+	if tx is 'change'
+		console.log """Theme file changed: "#{tx}" / "#{fn}" """
 		if (
 			# Restart server when either of these files changes:
-			(fn.match /\.html$/) or
-			(fn.match /\.css$/)
+			(fn.match /\.html$/i) or
+			(fn.match /\.css$/i)
 		)
 			wayout = yes
-			console.log '[[omw]]'
+			console.log '-- Reboot --'
 			#!!#md_save()
 			probably_shut_it_down()
 

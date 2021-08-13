@@ -5,7 +5,7 @@
 	<input type=button value="Personal Profile" onclick="
 		ethereum
 			.request({ method: 'eth_requestAccounts' })
-			.then(addr => location.href = `/${ addr[0].substr(2).toLowerCase() }/`)
+			.then(goHome)
 	">
 	<input type=button value="+Post" onclick="
 		ethereum
@@ -16,6 +16,10 @@
 <hr style="clear:both">
 
 <script>
+function goHome (addr) {
+	let addr1 = typeof addr == 'string' ? addr : addr[0];
+	location.href = `/${ addr1.substr(2).toLowerCase() }/`;
+}
 function offerPostAs (addr) {
 	var marker = document.querySelector('hr');
 	while (marker.nextSibling) {
@@ -37,7 +41,15 @@ function postAs(addr) {
 		xh.open('put','/post/'+addr+'/'+ans);
 		//
 		xh.onabort = xh.onload = xh.onerror = ev => {
-			console.info("EVL:",ev.type,xh.status,xh.statusText,ev);
+			//console.info("EVL:",ev.type,xh.status,xh.statusText,ev);
+			switch (ev.type) {
+				case 'load':
+					goHome(addr);
+					break;
+				case 'error':
+					alert("Your thought was not posted.");
+					break;
+			}
 		}
 		//
 		xh.send(txt);

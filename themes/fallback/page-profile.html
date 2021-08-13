@@ -3,16 +3,9 @@
 customElements.define('ipfs-thought',class extends HTMLElement {
 	constructor () {
 		super();
-		this.style.border = '1px solid';
-		this.style.borderRadius = '4px';
-		this.style.display = 'inline-block';
-		this.style.margin = '1em';
-		this.style.padding = '1em';
-		console.log('boo')
 	}
 	static get observedAttributes() { return ['cid'] }
 	attributeChangedCallback(nm,ol,nu) {
-		console.log('yay')
 		;(async () => {
 			if (!/[a-zA-Z0-9]/.test(nu)) throw new Error("Bad CID:" + nu);
 			let url = `https://${ nu }.ipfs.dweb.link/thought.txt`;

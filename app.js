@@ -317,12 +317,15 @@
   wayout = false;
 
   modfs.watch('.', function(tx, fn) {
-    console.log(`Root file changed: "${tx}" / "${fn}" `);
-    if (tx === 'change' && !wayout) {
+    if (wayout) {
+      return;
+    }
+    if (tx === 'change') {
+      console.log(`Root file changed: "${tx}" / "${fn}" `);
       // Restart server when either of these files changes:
-      if ((fn.match(/\bapp\.js$/)) || (fn.match(/\bbump\.uid$/))) {
+      if ((fn.match(/\bapp\.js$/i)) || (fn.match(/\bconfigme\.json$/i)) || (fn.match(/\bbump\.uid$/i))) {
         wayout = true;
-        console.log('[[omw]]');
+        console.log('-- Reboot --');
         //!!#md_save()
         return probably_shut_it_down();
       }
@@ -333,12 +336,15 @@
     modfs.watch('./themes/', {
       recursive: true
     }, function(tx, fn) {
-      console.log(`Theme file changed: "${tx}" / "${fn}" `);
-      if (tx === 'change' && !wayout) {
+      if (wayout) {
+        return;
+      }
+      if (tx === 'change') {
+        console.log(`Theme file changed: "${tx}" / "${fn}" `);
         // Restart server when either of these files changes:
-        if ((fn.match(/\.html$/)) || (fn.match(/\.css$/))) {
+        if ((fn.match(/\.html$/i)) || (fn.match(/\.css$/i))) {
           wayout = true;
-          console.log('[[omw]]');
+          console.log('-- Reboot --');
           //!!#md_save()
           return probably_shut_it_down();
         }
