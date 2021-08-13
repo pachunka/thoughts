@@ -10,21 +10,15 @@ modhttp = require 'http'
 
 configActual = JSON.parse(String(modfs.readFileSync("CONFIGME.json")));
 
-securitybreach = yes
-datesplitter = 1000 * 60 * 60 * 24 * 30
-volumesplitter = 128
-
+#
+# Web3
 if not configActual["web3storage-api-key"]
 	throw new Error "Drop your web3.storage API key into CONFIGME.json to get started."
 w3s = new modw3s.Web3Storage token:configActual["web3storage-api-key"]
 web3 = new modw3
 
-#client_web3 = "https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
-#client_web3 = "https://bafybeic3siupzfwsrnl2zbrwaxwm22egf6o74jsfqgw32y7vczvxf2lf6m.ipfs.dweb.link/ethers.js"
-#client_web3 = "https://cdn.jsdelivr.net/npm/web3@1.5.1/dist/web3.min.js"
-client_web3 = "https://bafybeibyqta32y3tpcrn6z7suf6dpwgt3saw6kwkal2pfbqo4hteqztoqm.ipfs.dweb.link/web3.js"
-
-# testing
+#
+# Testing
 queueMicrotask ->
 	#console.log "Let's have a look",Object.keys(modw3)
 	#lst = await  w3s.list({maxResults:10})
@@ -34,7 +28,29 @@ queueMicrotask ->
 	#`}`
 	return
 
-# helpers
+#
+# Themes
+readThemeSync = (theme) ->
+	throw new Error("Theme name sanity check.") if /\.\//.test theme
+	#
+	snipRead = (snip,ext = 'html') ->
+		try
+			return String modfs.readFileSync("themes/#{theme}/#{snip}.#{ext}")
+		catch ee
+			if ee.code is 'ENOENT'
+				return String modfs.readFileSync("themes/fallback/#{snip}.#{ext}")
+			throw ee
+	#
+	return
+		"sys-prelude":  snipRead 'sys-prelude'
+		"sys-style":    snipRead 'sys-style'
+		"page-home":    snipRead 'page-home'
+		"page-profile": snipRead 'page-profile'
+
+themeActual = readThemeSync configActual['theme']
+
+#
+# Helpers
 OK =
 	attr: (ss) -> String(ss).replace(/&/g, '&#x26;').replace(/'/g, '&#x27;').replace(/"/g, '&#x22;')
 	html: (ss) -> String(ss).replace(/&/g, '&#x26;').replace(/</g, '&#x3C;')
@@ -46,6 +62,8 @@ ender = (res,code,more) ->
 	res.write "\n#{more}\n" if more
 	res.end()
 
+#
+# Main
 console.log ["         -= Thought Server on " + modos.hostname() + " =-         "]
 
 declareNewPost = (type,addr,cid,ocb) ->
@@ -86,7 +104,8 @@ declareNewPost = (type,addr,cid,ocb) ->
 				throw new Error "Saving is Broken: #{fn}"
 			ocb?(yes)
 
-# actual
+#
+# Actual
 modhttp.createServer hanandle = (req, res) ->
 	return ender res,400,'..' if req.url.match /\.\./ # no dot-dot requests, anywhere
 	rp = decodeURI req.url
@@ -171,48 +190,11 @@ modhttp.createServer hanandle = (req, res) ->
 			'Content-Type': 'text/html'
 			'Cache-Control':"max-age=#{ 0 }"
 			'Access-Control-Allow-Origin': '*'
-		res.write """
-			<!doctype html>
-			<meta charset=utf-8>
-			<style>
-			:root { font:medium sans-serif }
-			</style>
-			<script src="#{ OK.attr client_web3 }"></script>
-			Anything posted here will live on IPFS forever.
-			<br><br>
-			<input type=button value="Connect Wallet" onclick="
-				ethereum.request({ method: 'eth_requestAccounts' }).then(offerPostAs)
-			">
-			<script>
-			var web3 = new Web3(ethereum);
-			function attrOK (ss) {
-				return String(ss).replace(/&/g, '&#x26;').replace(/'/g, '&#x27;').replace(/"/g, '&#x22;');
-			}
-			function offerPostAs (addr) {
-				document.body.innerHTML = `
-					<textarea autofocus></textarea>
-					<br>
-					<input addr="${ attrOK(addr) }" type="button" value="Post as ${ attrOK(addr) }" onclick="postAs(this.getAttribute('addr'))">
-				`
-			}
-			function postAs(addr) {
-				var txt = document.querySelector('textarea').value;
-				//
-				//
-				web3.eth.personal.sign(web3.utils.fromUtf8(txt),addr,function (err,ans) {
-					if (err) throw new Error(err);
-					var xh = new XMLHttpRequest;
-					xh.open('put','/post/'+addr+'/'+ans);
-					//
-					xh.onabort = xh.onload = xh.onerror = ev => {
-						console.info("EVL:",ev.type,xh.status,xh.statusText,ev);
-					}
-					//
-					xh.send(txt);
-				});
-			}
-			</script>
-		"""
+		res.write [
+			themeActual['sys-prelude']
+			themeActual['sys-style']
+			themeActual['page-home']
+		].join '\n'
 		res.end()
 		return
 	else if pth.length is 3 and pth[1].match /[a-z0-9]{40}/
@@ -228,9 +210,9 @@ modhttp.createServer hanandle = (req, res) ->
 						console.error "File access problems",er
 						return ender res,500,"Something is not right."
 			#
-			# Check it:
+			# Overzealously disallow characters that could cause code injection
 			send = String(stored)
-			if /[`\\<]/.test send
+			if /[`\\<"&]/.test send
 				console.warn "Skipped sending contents of",fn,"through text/html due to possible injection."
 				return ender res,503,"Apparent data corruption."
 			#
@@ -239,52 +221,11 @@ modhttp.createServer hanandle = (req, res) ->
 				'Content-Type': 'text/html'
 				'Cache-Control':"max-age=#{ 0 }"
 				'Access-Control-Allow-Origin': '*'
-			res.write """
-				<!doctype html>
-				<meta charset=utf-8>
-				<style>
-				:root { font:medium sans-serif }
-				</style>
-				<body>
-				<script>
-				function attrOK (ss) {
-					return String(ss).replace(/&/g, '&#x26;').replace(/'/g, '&#x27;').replace(/"/g, '&#x22;');
-				}
-				//
-				customElements.define('ipfs-thought',class extends HTMLElement {
-					constructor () {
-						super();
-						this.style.border = '1px solid';
-						this.style.borderRadius = '4px';
-						this.style.display = 'inline-block';
-						this.style.margin = '1em';
-						this.style.padding = '1em';
-						console.log('boo')
-					}
-					static get observedAttributes() { return ['cid'] }
-					attributeChangedCallback(nm,ol,nu) {
-						console.log('yay')
-						;(async () => {
-							if (!/[a-zA-Z0-9]/.test(nu)) throw new Error("Bad CID:" + nu);
-							let url = `https://${ nu }.ipfs.dweb.link/thought.txt`;
-							console.log("Gonna go get",url);
-							let ftc = await fetch(url);
-							let txt = await ftc.text();
-							this.textContent = txt
-						})();
-					}
-				});
-				//
-				const lines = `#{ send }`.trim().split('\\n');
-				document.body.insertAdjacentHTML(
-					 'beforeEnd'
-					,lines
-						.filter(ln => /^\\/post /.exec(ln))
-						.map(ln => `<ipfs-thought cid="${ attrOK(ln.substr(6).trim()) }"></ipfs-thought>`)
-						.join('')
-				);
-				</script>
-			"""
+			res.write [
+				themeActual['sys-prelude']
+				themeActual['sys-style']
+				themeActual['page-profile'].replace(/ADF26198-411C-414A-9EB3-2C981305110E/g,send)
+			].join '\n'
 			res.end()
 		return
 	#else
@@ -296,12 +237,24 @@ modhttp.createServer hanandle = (req, res) ->
 # auto-reload for cmd line stuff
 wayout = no
 modfs.watch '.',(tx,fn) ->
-	console.log """Hit! "#{tx}" / "#{fn}" """
+	console.log """Root file changed: "#{tx}" / "#{fn}" """
 	if tx is 'change' and not wayout
 		if (
-			#(securitybreach and (fn.match(/\.js$/) or fn.match(/\.xhtml$/))) or
-			(securitybreach and fn.match /\bapp\.js$/) or
+			# Restart server when either of these files changes:
+			(fn.match /\bapp\.js$/) or
 			(fn.match /\bbump\.uid$/)
+		)
+			wayout = yes
+			console.log '[[omw]]'
+			#!!#md_save()
+			probably_shut_it_down()
+modfs.watch './themes/',(recursive:yes),(tx,fn) ->
+	console.log """Theme file changed: "#{tx}" / "#{fn}" """
+	if tx is 'change' and not wayout
+		if (
+			# Restart server when either of these files changes:
+			(fn.match /\.html$/) or
+			(fn.match /\.css$/)
 		)
 			wayout = yes
 			console.log '[[omw]]'
